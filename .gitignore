@@ -1,0 +1,6 @@
+node_modules
+package-lock.json
+data
+wa_creds
+wa_sessions
+.env
