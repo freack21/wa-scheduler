@@ -4,3 +4,4 @@ data
 wa_creds
 wa_sessions
 .env
+temp*

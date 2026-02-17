@@ -26,12 +26,15 @@ class SchedulerService {
     }
 
     async createSchedule(userId, number, message, time) {
+        // Force parse time as Asia/Jakarta
+        const timeObj = moment.tz(time, "Asia/Jakarta");
+        
         const schedule = {
             id: uuidv4(),
             userId,
             number,
             message,
-            time: new Date(time).toISOString(),
+            time: timeObj.toISOString(),
             status: 'pending',
             createdAt: new Date().toISOString()
         };
