@@ -25,14 +25,17 @@ app.use(express.json());
 app.use(express.static(path.join(process.cwd(), "public")));
 
 app.get("/", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(process.cwd(), "public", "login.html"));
 });
 
 app.get("/login", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(process.cwd(), "public", "login.html"));
 });
 
 app.get("/dashboard", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(process.cwd(), "public", "dashboard.html"));
 });
 

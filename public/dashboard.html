@@ -569,6 +569,10 @@
       }
     </style>
 
-    <script src="js/app.js"></script>
+    <script>
+      const script = document.createElement("script");
+      script.src = "js/app.js?v=" + new Date().getTime();
+      document.body.appendChild(script);
+    </script>
   </body>
 </html>
