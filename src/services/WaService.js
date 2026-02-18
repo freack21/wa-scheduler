@@ -13,6 +13,8 @@ class WaService extends EventEmitter {
     if (!fs.existsSync(this.sessionDir)) {
       fs.mkdirSync(this.sessionDir, { recursive: true });
     }
+
+    this.setMaxListeners(999999999999);
   }
 
   /**
