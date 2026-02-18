@@ -65,6 +65,7 @@ class WaService extends EventEmitter {
     session.removeAllListeners("connecting");
     session.removeAllListeners("connected");
     session.removeAllListeners("disconnected");
+    session.removeAllListeners("message"); // Fix potential memory leak
 
     session.on("qr", (qr) => {
       console.log(`[${userId}] QR Received`);
@@ -76,8 +77,10 @@ class WaService extends EventEmitter {
     session.on("connecting", () => {
       console.log(`[${userId}] Connecting`);
       socket.emit("wa_status", { status: "connecting" });
-      if (this.qrCache.has(userId)) {
-        socket.emit("wa_qr", this.qrCache.get(userId));
+      const lastQR = this.qrCache.get(userId);
+      if (lastQR) {
+        socket.emit("wa_qr", lastQR);
+        socket.emit("wa_status", { status: "scan_qr" }); // Force UI to show QR if available
       }
     });
 
@@ -92,6 +95,7 @@ class WaService extends EventEmitter {
       console.log(`[${userId}] Disconnected`);
       socket.emit("wa_status", { status: "disconnected" });
       this.sessions.delete(userId);
+      this.qrCache.delete(userId);
     });
 
     // Forward messages or other events if needed
