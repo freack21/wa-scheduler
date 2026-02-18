@@ -49,7 +49,7 @@ class WaService extends EventEmitter {
     }
 
     const session = new AutoWA(userId, {
-      printQR: false,
+      printQR: true,
       logging: false,
       folder: this.sessionDir, // Custom session folder if supported, or handles internally
     });
