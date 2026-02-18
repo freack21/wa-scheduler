@@ -7,6 +7,7 @@ class WaService extends EventEmitter {
   constructor() {
     super();
     this.sessions = new Map();
+    this.qrCache = new Map(); // Store last QR for each user
     this.sessionDir = path.join(process.cwd(), "wa_sessions");
 
     if (!fs.existsSync(this.sessionDir)) {
@@ -32,7 +33,14 @@ class WaService extends EventEmitter {
       if (user) {
         socket.emit("wa_status", { status: "connected", user: user });
       } else {
-        socket.emit("wa_status", { status: "connecting" });
+        // If not connected, check if there's a cached QR
+        const lastQR = this.qrCache.get(userId);
+        if (lastQR) {
+          socket.emit("wa_qr", lastQR);
+          socket.emit("wa_status", { status: "scan_qr" });
+        } else {
+          socket.emit("wa_status", { status: "connecting" });
+        }
       }
 
       return session;
@@ -54,17 +62,28 @@ class WaService extends EventEmitter {
   setupSocketListeners(session, socket, userId) {
     // Remove existing listeners to avoid duplicates if any (basic approach)
     session.removeAllListeners("qr");
+    session.removeAllListeners("connecting");
     session.removeAllListeners("connected");
     session.removeAllListeners("disconnected");
 
     session.on("qr", (qr) => {
       console.log(`[${userId}] QR Received`);
+      this.qrCache.set(userId, qr); // Cache the QR
       socket.emit("wa_qr", qr);
       socket.emit("wa_status", { status: "scan_qr" });
     });
 
+    session.on("connecting", () => {
+      console.log(`[${userId}] Connecting`);
+      socket.emit("wa_status", { status: "connecting" });
+      if (this.qrCache.has(userId)) {
+        socket.emit("wa_qr", this.qrCache.get(userId));
+      }
+    });
+
     session.on("connected", () => {
       console.log(`[${userId}] Connected`);
+      this.qrCache.delete(userId); // Clear QR cache
       socket.emit("wa_status", { status: "connected", user: session.user });
       this.emit("connected", { userId, user: session.user });
     });
