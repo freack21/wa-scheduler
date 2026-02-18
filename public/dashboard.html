@@ -1,18 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="color-scheme: light dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WA Scheduler - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
     <script>
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             fontFamily: {
@@ -22,13 +17,19 @@
         },
       };
     </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body
-    class="bg-gray-900 text-white min-h-screen font-sans selection:bg-blue-500 selection:text-white"
+    class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 min-h-screen font-sans selection:bg-blue-500 selection:text-white transition-colors duration-300"
   >
     <!-- Navbar -->
     <nav
-      class="border-b border-gray-800 bg-gray-900/80 backdrop-blur-md sticky top-0 z-50"
+      class="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
@@ -50,11 +51,42 @@
                 ></path>
               </svg>
             </div>
-            <span class="font-bold text-xl tracking-tight">WA Scheduler</span>
+            <span
+              class="font-bold text-xl tracking-tight text-gray-900 dark:text-white"
+              >WA Scheduler</span
+            >
           </div>
           <div class="flex items-center gap-4">
+            <!-- Theme Toggle -->
+            <button
+              id="theme-toggle"
+              class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all focus:outline-none"
+            >
+              <svg
+                id="theme-toggle-light-icon"
+                class="hidden w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <svg
+                id="theme-toggle-dark-icon"
+                class="hidden w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+            </button>
             <div
-              class="hidden md:flex items-center gap-2 text-sm text-gray-400 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700 group relative"
+              class="hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 group relative transition-colors"
             >
               <span class="w-2 h-2 rounded-full bg-green-500"></span>
               <span
@@ -65,7 +97,7 @@
               >
               <button
                 id="copy-token-btn"
-                class="text-gray-500 hover:text-white transition-colors ml-1"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors ml-1"
                 title="Copy Token"
               >
                 <svg
@@ -84,14 +116,14 @@
               </button>
               <div
                 id="copy-toast"
-                class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity pointer-events-none"
+                class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity pointer-events-none"
               >
                 Copied!
               </div>
             </div>
             <button
               id="logout-btn"
-              class="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+              class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Logout
             </button>
@@ -107,19 +139,11 @@
         <div class="lg:col-span-1 space-y-6">
           <!-- Device Status Card -->
           <div
-            class="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-gray-600 transition-all"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-gray-300 dark:hover:border-gray-600 transition-all"
           >
-            <div
-              class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+            <h2
+              class="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white"
             >
-              <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.232-.298.347-.497.115-.198.058-.372-.03-.548-.09-.175-.826-2.008-1.132-2.75 3.33-.292-.716.035-.12.35-.322.316.323 1.933 1.933 2.502 2.503.569.57.694 5.378 1.96 7.425.467 1.97.222 13.91 3.55 19.38 3.55 23.32-.472 24.32-.224 24.32-.224-.546-.3-1.67-.3-1.67-.3-3.61.35-8.5-4.54-8.5-4.54z"
-                ></path>
-              </svg>
-            </div>
-
-            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
               WhatsApp Connection
             </h2>
 
@@ -127,21 +151,24 @@
               class="flex flex-col items-center justify-center min-h-[300px]"
             >
               <!-- QR Code Area -->
-              <div id="qr-container" class="relative group">
+              <div id="qr-container" class="relative group hidden">
                 <div
                   id="qrcode"
-                  class="p-2 bg-white rounded-lg shadow-lg"
+                  class="p-2 bg-white rounded-lg shadow-lg flex items-center justify-center min-h-[260px] min-w-[260px]"
                 ></div>
 
                 <!-- Loading State -->
                 <div
                   id="qr-loading"
-                  class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 rounded-lg text-center backdrop-blur-sm z-10"
+                  class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-800/95 rounded-lg text-center backdrop-blur-sm z-10 transition-colors"
                 >
                   <div
-                    class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"
+                    class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"
                   ></div>
-                  <span class="text-sm text-gray-400">Connecting...</span>
+                  <span
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                    >Connecting...</span
+                  >
                 </div>
               </div>
 
@@ -167,15 +194,23 @@
                     ></path>
                   </svg>
                 </div>
-                <h3 id="wa-name" class="font-bold text-lg">User Name</h3>
-                <p id="wa-number" class="text-gray-400 text-sm font-mono mb-4">
+                <h3
+                  id="wa-name"
+                  class="font-bold text-lg text-gray-900 dark:text-white"
+                >
+                  User Name
+                </h3>
+                <p
+                  id="wa-number"
+                  class="text-gray-500 dark:text-gray-400 text-sm font-mono mb-4"
+                >
                   +62 812 3456 7890
                 </p>
 
                 <div class="flex flex-col gap-2 w-full">
                   <button
                     id="wa-logout-btn"
-                    class="w-full py-2 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-lg transition-colors text-sm font-medium"
+                    class="w-full py-2 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-500 border border-red-500/20 rounded-lg transition-colors text-sm font-medium"
                   >
                     Disconnect
                   </button>
@@ -186,7 +221,7 @@
               <div class="mt-6">
                 <span
                   id="connection-status"
-                  class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-700 text-gray-300 border border-gray-600"
+                  class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 transition-colors"
                 >
                   Disconnected
                 </span>
@@ -199,7 +234,7 @@
         <div class="lg:col-span-2 space-y-6">
           <!-- Scheduler Form -->
           <div
-            class="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-xl transition-colors"
           >
             <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
               <svg
@@ -221,13 +256,14 @@
             <form id="schedule-form" class="space-y-4">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                     >Target Number</label
                   >
                   <input
                     type="text"
                     id="target-number"
-                    class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-400 dark:placeholder-gray-600 text-gray-900 dark:text-white"
                     placeholder="e.g. 62812345678"
                     required
                   />
@@ -236,13 +272,14 @@
                   </p>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                     >Date & Time</label
                   >
                   <input
                     type="datetime-local"
                     id="schedule-time"
-                    class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-200"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 dark:text-white"
                     required
                   />
                   <p class="text-xs text-gray-500 mt-1">Jakarta Time</p>
@@ -251,12 +288,13 @@
 
               <!-- Message Type Selection -->
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1"
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                   >Message Type</label
                 >
                 <select
                   id="message-type"
-                  class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-200"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 dark:text-white"
                 >
                   <option value="text">Text Message</option>
                   <option value="image">Image</option>
@@ -275,41 +313,47 @@
                       name="media-source"
                       value="url"
                       checked
-                      class="text-blue-500 focus:ring-blue-500 bg-gray-900 border-gray-700"
+                      class="text-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700"
                     />
-                    <span class="text-sm text-gray-300">From URL</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300"
+                      >From URL</span
+                    >
                   </label>
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       name="media-source"
                       value="file"
-                      class="text-blue-500 focus:ring-blue-500 bg-gray-900 border-gray-700"
+                      class="text-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700"
                     />
-                    <span class="text-sm text-gray-300">Upload File</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300"
+                      >Upload File</span
+                    >
                   </label>
                 </div>
 
                 <div id="url-input-group">
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                     >Media URL</label
                   >
                   <input
                     type="url"
                     id="media-url"
-                    class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-400 dark:placeholder-gray-600 text-gray-900 dark:text-white"
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
 
                 <div id="file-input-group" class="hidden">
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                     >Upload File</label
                   >
                   <input
                     type="file"
                     id="media-file"
-                    class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                   />
                   <p class="text-xs text-gray-500 mt-1">
                     File will be temporarily stored and deleted after sending.
@@ -317,13 +361,14 @@
                 </div>
 
                 <div id="filename-input-group" class="hidden">
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                     >Filename (Required for Documents)</label
                   >
                   <input
                     type="text"
                     id="media-filename"
-                    class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-400 dark:placeholder-gray-600 text-gray-900 dark:text-white"
                     placeholder="e.g. document.pdf"
                   />
                   <p class="text-xs text-gray-500 mt-1">
@@ -335,13 +380,13 @@
               <div>
                 <label
                   id="message-label"
-                  class="block text-sm font-medium text-gray-400 mb-1"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
                   >Message</label
                 >
                 <textarea
                   id="message-content"
                   rows="3"
-                  class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600 resize-none"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-400 dark:placeholder-gray-600 text-gray-900 dark:text-white resize-none"
                   placeholder="Type your message here..."
                 ></textarea>
               </div>
@@ -372,10 +417,10 @@
 
           <!-- Schedule List -->
           <div
-            class="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-xl transition-colors"
           >
             <h2
-              class="text-lg font-semibold mb-4 flex items-center gap-2 justify-between"
+              class="text-lg font-semibold mb-4 flex items-center gap-2 justify-between text-gray-800 dark:text-white"
             >
               <div class="flex items-center gap-2">
                 <svg
@@ -395,7 +440,7 @@
               </div>
               <button
                 onclick="fetchSchedules()"
-                class="text-gray-400 hover:text-white transition-colors p-1"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors p-1"
               >
                 <svg
                   class="w-4 h-4"
@@ -413,13 +458,17 @@
               </button>
             </h2>
 
-            <div class="overflow-hidden rounded-lg border border-gray-700">
+            <div
+              class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+            >
               <ul
                 id="schedule-list"
-                class="divide-y divide-gray-700 max-h-[400px] overflow-y-auto custom-scrollbar"
+                class="divide-y divide-gray-200 dark:divide-gray-700 max-h-[400px] overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900/50"
               >
                 <!-- Items will be injected here -->
-                <li class="p-4 text-center text-gray-500 text-sm">
+                <li
+                  class="p-4 text-center text-gray-500 dark:text-gray-400 text-sm"
+                >
                   Loading schedules...
                 </li>
               </ul>
@@ -427,19 +476,23 @@
           </div>
 
           <!-- API Reference -->
-          <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
+          <div
+            class="bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 transition-colors"
+          >
             <h3
-              class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider"
+              class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider"
             >
               Quick API Reference
             </h3>
             <div class="space-y-2">
               <div
-                class="flex items-center gap-2 text-xs font-mono bg-gray-900 p-2 rounded border border-gray-800"
+                class="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300"
               >
-                <span class="text-green-400">POST</span>
-                <span class="text-gray-300">/api/schedule</span>
-                <span class="text-gray-500 ml-auto"
+                <span class="text-green-600 dark:text-green-400">POST</span>
+                <span class="text-gray-600 dark:text-gray-300"
+                  >/api/schedule</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 ml-auto"
                   >{ number, message, time }</span
                 >
               </div>

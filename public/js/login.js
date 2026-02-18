@@ -10,6 +10,33 @@ let isRegister = false;
 
 const toggleText = document.getElementById("toggle-text");
 
+// Theme Toggle Logic
+const themeToggle = document.getElementById("theme-toggle");
+const lightIcon = document.getElementById("theme-toggle-light-icon");
+const darkIcon = document.getElementById("theme-toggle-dark-icon");
+
+function setTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+    lightIcon.classList.remove("hidden");
+    darkIcon.classList.add("hidden");
+  } else {
+    document.documentElement.classList.remove("dark");
+    lightIcon.classList.add("hidden");
+    darkIcon.classList.remove("hidden");
+  }
+  localStorage.setItem("theme", theme);
+}
+
+// Initialize theme
+const savedTheme = localStorage.getItem("theme") || "dark"; // Default to dark
+setTheme(savedTheme);
+
+themeToggle.addEventListener("click", () => {
+  const isDark = document.documentElement.classList.contains("dark");
+  setTheme(isDark ? "light" : "dark");
+});
+
 toggleAuth.addEventListener("click", () => {
   isRegister = !isRegister;
   formTitle.innerText = isRegister ? "Register" : "Welcome Back";

@@ -19,6 +19,33 @@ const logoutBtn = document.getElementById("logout-btn");
 const apiKeyDisplay = document.getElementById("api-key-display");
 const qrLoading = document.getElementById("qr-loading");
 
+// Theme Toggle Logic
+const themeToggle = document.getElementById("theme-toggle");
+const lightIcon = document.getElementById("theme-toggle-light-icon");
+const darkIcon = document.getElementById("theme-toggle-dark-icon");
+
+function setTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+    lightIcon.classList.remove("hidden");
+    darkIcon.classList.add("hidden");
+  } else {
+    document.documentElement.classList.remove("dark");
+    lightIcon.classList.add("hidden");
+    darkIcon.classList.remove("hidden");
+  }
+  localStorage.setItem("theme", theme);
+}
+
+// Initialize theme
+const savedTheme = localStorage.getItem("theme") || "dark"; // Default to dark
+setTheme(savedTheme);
+
+themeToggle.addEventListener("click", () => {
+  const isDark = document.documentElement.classList.contains("dark");
+  setTheme(isDark ? "light" : "dark");
+});
+
 // Display API Key (Token for now, ideally strictly API Key)
 // In a real app, you'd fetch a separate API Key. Here using JWT for simplicity or fetch profile.
 apiKeyDisplay.innerText = token.substring(0, 12) + "...";
@@ -53,22 +80,32 @@ socket.on("connect_error", (err) => {
   }
 });
 
+const qrContainer = document.getElementById("qr-container");
+
 socket.on("wa_status", (data) => {
   console.log("WA Status:", data);
   updateStatus(data.status);
 
   if (data.status === "connected" && data.user) {
     qrCodeDiv.innerHTML = "";
+    qrContainer.classList.add("hidden");
     userInfoDiv.classList.remove("hidden");
     waNameSpan.innerText = data.user.name || "User";
     waNumberSpan.innerText = data.user.id || "Unknown";
     qrLoading.classList.add("hidden");
   } else if (data.status === "scan_qr") {
     userInfoDiv.classList.add("hidden");
-    // qrCodeDiv handled in wa_qr event
+    // qrContainer shown in wa_qr event, but ensure it's visible here too just in case
+    qrContainer.classList.remove("hidden");
+  } else if (data.status === "connecting") {
+    userInfoDiv.classList.add("hidden");
+    qrCodeDiv.innerHTML = "";
+    qrContainer.classList.remove("hidden"); // Show container for loading state
+    qrLoading.classList.remove("hidden"); // Show loading
   } else {
     userInfoDiv.classList.add("hidden");
     qrCodeDiv.innerHTML = "";
+    qrContainer.classList.add("hidden");
     qrLoading.classList.add("hidden");
   }
 });
@@ -76,6 +113,7 @@ socket.on("wa_status", (data) => {
 socket.on("wa_qr", (qr) => {
   console.log("QR Received");
   updateStatus("scan_qr");
+  qrContainer.classList.remove("hidden");
   qrLoading.classList.add("hidden");
   QRCode.toCanvas(qr, { margin: 2, scale: 6 }, function (err, canvas) {
     if (err) return console.error(err);
@@ -272,32 +310,35 @@ async function fetchSchedules() {
     schedules.forEach((schedule) => {
       const li = document.createElement("li");
       li.className =
-        "p-4 bg-gray-900/50 hover:bg-gray-900 transition-colors flex items-start justify-between group";
+        "p-4 bg-white dark:bg-gray-900/50 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-start justify-between group border-b border-gray-100 dark:border-gray-800 last:border-0";
 
       const timeFormatted = new Date(schedule.time).toLocaleString("id-ID", {
         timeZone: "Asia/Jakarta",
       });
-      let statusColor = "bg-gray-700 text-gray-300";
+      let statusColor =
+        "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600";
       if (schedule.status === "sent")
-        statusColor = "bg-green-900/50 text-green-300 border border-green-800";
+        statusColor =
+          "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800";
       if (schedule.status === "pending")
         statusColor =
-          "bg-yellow-900/50 text-yellow-300 border border-yellow-800";
+          "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800";
       if (schedule.status === "failed")
-        statusColor = "bg-red-900/50 text-red-300 border border-red-800";
+        statusColor =
+          "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800";
 
       const mediaTypeBadge =
         schedule.mediaType && schedule.mediaType !== "text"
-          ? `<span class="text-xs uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 ml-2">${schedule.mediaType}</span>`
+          ? `<span class="text-xs uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30 ml-2">${schedule.mediaType}</span>`
           : "";
 
       li.innerHTML = `
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-white font-medium">${schedule.number}</span>
+                        <span class="font-mono text-gray-900 dark:text-white font-medium">${schedule.number}</span>
                         ${mediaTypeBadge}
                     </div>
-                    <p class="text-gray-400 text-sm line-clamp-2">${
+                    <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">${
                       schedule.message || "No caption"
                     }</p>
                     <div class="flex items-center gap-2 mt-1">
@@ -312,7 +353,7 @@ async function fetchSchedules() {
                 </div>
                 <button onclick="deleteSchedule('${
                   schedule.id
-                }')" class="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2">
+                }')" class="text-gray-400 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             `;
