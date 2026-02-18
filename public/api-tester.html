@@ -128,189 +128,138 @@
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-      <!-- Left Panel: Request -->
-      <div
-        class="w-full md:w-1/2 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-full overflow-hidden"
+    <!-- Content Wrapper -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Sidebar: History -->
+      <aside
+        class="w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col hidden md:flex"
       >
-        <!-- URL Bar -->
-        <div class="p-4 border-b border-gray-200 dark:border-gray-800">
-          <div class="flex gap-2">
-            <select
-              id="request-method"
-              class="px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-mono text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="GET" class="text-green-600">GET</option>
-              <option value="POST" class="text-yellow-600">POST</option>
-              <option value="PUT" class="text-blue-600">PUT</option>
-              <option value="PATCH" class="text-purple-600">PATCH</option>
-              <option value="DELETE" class="text-red-600">DELETE</option>
-            </select>
-            <input
-              type="text"
-              id="request-url"
-              class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
-              placeholder="Enter request URL"
-            />
-            <button
-              id="send-btn"
-              class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2"
-            >
-              <span>Send</span>
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Request Tabs -->
-        <div class="flex-1 flex flex-col min-h-0">
-          <div
-            class="flex border-b border-gray-200 dark:border-gray-800 px-4 gap-4"
+        <div
+          class="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center"
+        >
+          <h3
+            class="font-semibold text-gray-700 dark:text-gray-200 text-sm uppercase tracking-wider"
           >
-            <button
-              class="tab-btn active py-3 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400"
-              data-tab="params"
-            >
-              Params
-            </button>
-            <button
-              class="tab-btn py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              data-tab="headers"
-            >
-              Headers
-            </button>
-            <button
-              class="tab-btn py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              data-tab="body"
-            >
-              Body
-            </button>
+            History
+          </h3>
+          <button
+            id="clear-history-btn"
+            class="text-xs text-red-500 hover:text-red-700 font-medium"
+          >
+            Clear
+          </button>
+        </div>
+        <div
+          id="history-list"
+          class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2"
+        >
+          <!-- Dynamic History Items -->
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        <!-- toggle sidebar button for mobile -->
+        <button
+          id="mobile-history-toggle"
+          class="md:hidden absolute left-4 bottom-4 z-50 p-3 bg-indigo-600 rounded-full text-white shadow-lg"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+        </button>
+
+        <!-- Left Panel: Request -->
+        <div
+          class="w-full md:w-1/2 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-full overflow-hidden"
+        >
+          <!-- URL Bar -->
+          <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+            <div class="flex gap-2">
+              <select
+                id="request-method"
+                class="px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-mono text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="GET" class="text-green-600">GET</option>
+                <option value="POST" class="text-yellow-600">POST</option>
+                <option value="PUT" class="text-blue-600">PUT</option>
+                <option value="PATCH" class="text-purple-600">PATCH</option>
+                <option value="DELETE" class="text-red-600">DELETE</option>
+              </select>
+              <input
+                type="text"
+                id="request-url"
+                class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
+                placeholder="Enter request URL"
+              />
+              <button
+                id="send-btn"
+                class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2"
+              >
+                <span>Send</span>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  ></path>
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <!-- Params Tab -->
-            <div id="tab-params" class="tab-content space-y-2">
-              <div class="text-xs text-gray-500 mb-2 font-mono uppercase">
-                Query Parameters
-              </div>
-              <div id="params-container" class="space-y-2">
-                <!-- Dynamic Param Rows -->
-              </div>
+          <!-- Request Tabs -->
+          <div class="flex-1 flex flex-col min-h-0">
+            <div
+              class="flex border-b border-gray-200 dark:border-gray-800 px-4 gap-4"
+            >
               <button
-                onclick="addKeyValuePair('params-container')"
-                class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
+                class="tab-btn active py-3 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                data-tab="params"
               >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 4v16m8-8H4"
-                  ></path>
-                </svg>
-                Add Parameter
+                Params
+              </button>
+              <button
+                class="tab-btn py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                data-tab="headers"
+              >
+                Headers
+              </button>
+              <button
+                class="tab-btn py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                data-tab="body"
+              >
+                Body
               </button>
             </div>
 
-            <!-- Headers Tab -->
-            <div id="tab-headers" class="tab-content hidden space-y-2">
-              <div class="text-xs text-gray-500 mb-2 font-mono uppercase">
-                Request Headers
-              </div>
-              <div id="headers-container" class="space-y-2">
-                <!-- Dynamic Header Rows -->
-              </div>
-              <button
-                onclick="addKeyValuePair('headers-container')"
-                class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 4v16m8-8H4"
-                  ></path>
-                </svg>
-                Add Header
-              </button>
-            </div>
-
-            <!-- Body Tab -->
-            <div id="tab-body" class="tab-content hidden h-full flex flex-col">
-              <div class="flex gap-4 mb-4 text-xs font-mono">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="body-type"
-                    value="none"
-                    class="text-indigo-600"
-                    checked
-                  />
-                  <span>None</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="body-type"
-                    value="json"
-                    class="text-indigo-600"
-                  />
-                  <span>JSON</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="body-type"
-                    value="form-data"
-                    class="text-indigo-600"
-                  />
-                  <span>Form Data</span>
-                </label>
-              </div>
-
-              <!-- JSON Editor -->
-              <div
-                id="body-json"
-                class="hidden flex-1 relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
-              >
-                <textarea
-                  id="json-input"
-                  class="w-full h-full p-4 bg-gray-50 dark:bg-gray-800 text-sm font-mono resize-none focus:outline-none"
-                  placeholder='{ "key": "value" }'
-                ></textarea>
-              </div>
-
-              <!-- Form Data Editor -->
-              <div id="body-form-data" class="hidden space-y-2">
-                <div id="form-data-container" class="space-y-2">
-                  <!-- Dynamic Form Data Rows -->
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <!-- Params Tab -->
+              <div id="tab-params" class="tab-content space-y-2">
+                <div class="text-xs text-gray-500 mb-2 font-mono uppercase">
+                  Query Parameters
+                </div>
+                <div id="params-container" class="space-y-2">
+                  <!-- Dynamic Param Rows -->
                 </div>
                 <button
-                  onclick="addFormDataRow()"
+                  onclick="addKeyValuePair('params-container')"
                   class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
                 >
                   <svg
@@ -326,103 +275,246 @@
                       d="M12 4v16m8-8H4"
                     ></path>
                   </svg>
-                  Add Field
+                  Add Parameter
                 </button>
+              </div>
+
+              <!-- Headers Tab -->
+              <div id="tab-headers" class="tab-content hidden space-y-2">
+                <div class="text-xs text-gray-500 mb-2 font-mono uppercase">
+                  Request Headers
+                </div>
+                <div id="headers-container" class="space-y-2">
+                  <!-- Dynamic Header Rows -->
+                </div>
+                <button
+                  onclick="addKeyValuePair('headers-container')"
+                  class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"
+                    ></path>
+                  </svg>
+                  Add Header
+                </button>
+              </div>
+
+              <!-- Body Tab -->
+              <div
+                id="tab-body"
+                class="tab-content hidden h-full flex flex-col"
+              >
+                <div class="flex gap-4 mb-4 text-xs font-mono">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="body-type"
+                      value="none"
+                      class="text-indigo-600"
+                      checked
+                    />
+                    <span>None</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="body-type"
+                      value="json"
+                      class="text-indigo-600"
+                    />
+                    <span>JSON</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="body-type"
+                      value="form-data"
+                      class="text-indigo-600"
+                    />
+                    <span>Form Data</span>
+                  </label>
+                </div>
+
+                <!-- JSON Editor -->
+                <div
+                  id="body-json"
+                  class="hidden flex-1 relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                >
+                  <textarea
+                    id="json-input"
+                    class="w-full h-full p-4 bg-gray-50 dark:bg-gray-800 text-sm font-mono resize-none focus:outline-none"
+                    placeholder='{ "key": "value" }'
+                  ></textarea>
+                </div>
+
+                <!-- Form Data Editor -->
+                <div id="body-form-data" class="hidden space-y-2">
+                  <div id="form-data-container" class="space-y-2">
+                    <!-- Dynamic Form Data Rows -->
+                  </div>
+                  <button
+                    onclick="addFormDataRow()"
+                    class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      ></path>
+                    </svg>
+                    Add Field
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Right Panel: Response -->
-      <div
-        class="w-full md:w-1/2 flex flex-col bg-gray-50 dark:bg-gray-950 h-full border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800"
-      >
+        <!-- Right Panel: Response -->
         <div
-          class="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center h-[73px]"
+          class="w-full md:w-1/2 flex flex-col bg-gray-50 dark:bg-gray-950 h-full border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800"
         >
-          <h2 class="font-semibold text-gray-700 dark:text-gray-200">
-            Response
-          </h2>
           <div
-            id="response-meta"
-            class="hidden flex items-center gap-4 text-xs font-mono"
+            class="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center h-[73px]"
           >
-            <span
-              class="px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              id="res-status"
-              >200 OK</span
-            >
-            <span class="text-gray-500" id="res-time">120ms</span>
-            <span class="text-gray-500" id="res-size">1.2KB</span>
-          </div>
-        </div>
-
-        <div class="flex-1 flex flex-col min-h-0 overflow-hidden relative">
-          <!-- Empty State -->
-          <div
-            id="response-empty"
-            class="absolute inset-0 flex flex-col items-center justify-center text-gray-400"
-          >
-            <svg
-              class="w-16 h-16 mb-4 opacity-50"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-            <p>Send a request to see the response</p>
-          </div>
-
-          <!-- Loading State -->
-          <div
-            id="response-loading"
-            class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10"
-          >
+            <h2 class="font-semibold text-gray-700 dark:text-gray-200">
+              Response
+            </h2>
             <div
-              class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"
-            ></div>
+              id="response-meta"
+              class="hidden flex items-center gap-4 text-xs font-mono"
+            >
+              <span
+                class="px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                id="res-status"
+                >200 OK</span
+              >
+              <span class="text-gray-500" id="res-time">120ms</span>
+              <span class="text-gray-500" id="res-size">1.2KB</span>
+            </div>
           </div>
 
-          <!-- Content -->
-          <div id="response-content" class="hidden flex-1 flex flex-col h-full">
+          <div class="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+            <!-- Empty State -->
             <div
-              class="flex border-b border-gray-200 dark:border-gray-800 px-4 gap-4 bg-white dark:bg-gray-900"
+              id="response-empty"
+              class="absolute inset-0 flex flex-col items-center justify-center text-gray-400"
             >
-              <button
-                class="res-tab-btn active py-2 text-xs font-medium border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                data-tab="res-body"
+              <svg
+                class="w-16 h-16 mb-4 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                Body
-              </button>
-              <button
-                class="res-tab-btn py-2 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                data-tab="res-headers"
-              >
-                Headers
-              </button>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <p>Send a request to see the response</p>
             </div>
 
-            <div class="flex-1 overflow-auto p-4 custom-scrollbar">
-              <pre
-                id="res-body"
-                class="res-tab-content text-xs font-mono text-gray-800 dark:text-gray-300 whitespace-pre-wrap break-all"
-              ></pre>
+            <!-- Loading State -->
+            <div
+              id="response-loading"
+              class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10"
+            >
               <div
-                id="res-headers"
-                class="res-tab-content hidden space-y-1"
+                class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"
               ></div>
             </div>
+
+            <!-- Content -->
+            <div
+              id="response-content"
+              class="hidden flex-1 flex flex-col h-full"
+            >
+              <div
+                class="flex border-b border-gray-200 dark:border-gray-800 px-4 gap-4 bg-white dark:bg-gray-900"
+              >
+                <button
+                  class="res-tab-btn active py-2 text-xs font-medium border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                  data-tab="res-body"
+                >
+                  Body
+                </button>
+                <button
+                  class="res-tab-btn py-2 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  data-tab="res-headers"
+                >
+                  Headers
+                </button>
+              </div>
+
+              <div class="flex-1 overflow-auto p-4 custom-scrollbar">
+                <pre
+                  id="res-body"
+                  class="res-tab-content text-xs font-mono text-gray-800 dark:text-gray-300 whitespace-pre-wrap break-all"
+                ></pre>
+                <div
+                  id="res-headers"
+                  class="res-tab-content hidden space-y-1"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
+      </main>
+    </div>
+
+    <template id="history-item-template">
+      <div
+        class="relative p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all group"
+      >
+        <button
+          class="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity delete-btn z-10"
+          title="Delete"
+        >
+          <svg
+            class="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            ></path>
+          </svg>
+        </button>
+        <div class="flex justify-between items-start mb-1 pr-4">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded method-badge"
+            >GET</span
+          >
+          <span class="text-[10px] text-gray-400 time-ago">2m ago</span>
+        </div>
+        <div
+          class="text-xs font-mono text-gray-600 dark:text-gray-400 truncate url-text"
+        >
+          /api/endpoint
+        </div>
       </div>
-    </main>
+    </template>
 
     <template id="key-value-row-template">
       <div class="flex gap-2 group">
@@ -506,7 +598,7 @@
     <script>
       // Load script dynamically for cache busting
       const script = document.createElement("script");
-      script.src = "js/api-tester.js?v=" + new Date().getTime();
+      script.src = "/js/api-tester.js?v=" + new Date().getTime();
       document.body.appendChild(script);
     </script>
   </body>

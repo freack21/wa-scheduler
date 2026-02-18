@@ -149,7 +149,205 @@ addKeyValuePair("params-container");
 addKeyValuePair("headers-container");
 addFormDataRow();
 
-// Persistence - Load Last Request
+// HISTORY MANAGEMENT
+const historyList = document.getElementById("history-list");
+const clearHistoryBtn = document.getElementById("clear-history-btn");
+const historyTemplate = document.getElementById("history-item-template");
+
+let history = [];
+
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem("api_tester_history");
+    history = saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    history = [];
+  }
+  renderHistory();
+}
+
+function saveToHistory(req) {
+  // Remove duplicate if exists (same method & url)
+  // Or simple append to top. Let's just append to top and limit size.
+  const newItem = {
+    ...req,
+    id: Date.now(),
+    timestamp: Date.now(),
+  };
+
+  history.unshift(newItem);
+  if (history.length > 50) history.pop(); // Limit to 50
+
+  localStorage.setItem("api_tester_history", JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory() {
+  if (confirm("Clear all history?")) {
+    history = [];
+    localStorage.removeItem("api_tester_history");
+    renderHistory();
+  }
+}
+
+function formatTimeAgo(timestamp) {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+function getMethodColorRaw(method) {
+  switch (method) {
+    case "GET":
+      return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+    case "POST":
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+    case "PUT":
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+    case "PATCH":
+      return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+    case "DELETE":
+      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+    default:
+      return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+  }
+}
+
+function deleteHistoryItem(index, event) {
+  event.stopPropagation(); // Prevent triggering restore
+  if (confirm("Delete this item?")) {
+    history.splice(index, 1);
+    localStorage.setItem("api_tester_history", JSON.stringify(history));
+    renderHistory();
+  }
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+  if (history.length === 0) {
+    historyList.innerHTML = `
+        <div class="text-center text-xs text-gray-400 mt-4">
+            No history yet
+        </div>
+    `;
+    return;
+  }
+
+  history.forEach((item, index) => {
+    const clone = historyTemplate.content.cloneNode(true);
+    const badge = clone.querySelector(".method-badge");
+    badge.textContent = item.method;
+    badge.className = `text-[10px] font-bold px-1.5 py-0.5 rounded method-badge ${getMethodColorRaw(
+      item.method,
+    )}`;
+
+    clone.querySelector(".time-ago").textContent = formatTimeAgo(
+      item.timestamp,
+    );
+    clone.querySelector(".url-text").textContent = item.url;
+
+    // Click to restore
+    const itemContainer = clone.querySelector(".group");
+    itemContainer.onclick = () => restoreRequest(item);
+
+    // Click to delete
+    const deleteBtn = clone.querySelector(".delete-btn");
+    if (deleteBtn) {
+      deleteBtn.onclick = (e) => deleteHistoryItem(index, e);
+    }
+
+    historyList.appendChild(clone);
+  });
+}
+
+function restoreRequest(item) {
+  document.getElementById("request-method").value = item.method;
+  document.getElementById("request-url").value = item.url;
+
+  // Restore Params
+  const paramsContainer = document.getElementById("params-container");
+  paramsContainer.innerHTML = "";
+  if (item.params && item.params.length) {
+    item.params.forEach((p) =>
+      addKeyValuePair("params-container", p.key, p.value),
+    );
+  } else {
+    addKeyValuePair("params-container");
+  }
+
+  // Restore Headers
+  const headersContainer = document.getElementById("headers-container");
+  headersContainer.innerHTML = "";
+  if (item.headers && item.headers.length) {
+    item.headers.forEach((h) =>
+      addKeyValuePair("headers-container", h.key, h.value),
+    );
+  } else {
+    addKeyValuePair("headers-container");
+  }
+
+  // Restore Body
+  const bodyType = item.bodyType || "none";
+  document.querySelector(
+    `input[name="body-type"][value="${bodyType}"]`,
+  ).checked = true;
+  document
+    .querySelector(`input[name="body-type"][value="${bodyType}"]`)
+    .dispatchEvent(new Event("change")); // Trigger visibility logic
+
+  if (bodyType === "json") {
+    document.getElementById("json-input").value = item.bodyContent || "";
+  } else if (bodyType === "form-data") {
+    // NOTE: We cannot restore file objects for security reasons
+    // But we can restore text fields
+    const fdContainer = document.getElementById("form-data-container");
+    fdContainer.innerHTML = "";
+    if (item.bodyFormData && item.bodyFormData.length) {
+      item.bodyFormData.forEach((fd) => {
+        // We need a helper to add with values. addFormDataRow creates empty.
+        // Let's create proper rows.
+        const clone = fdTemplate.content.cloneNode(true);
+        clone.querySelector(".key-input").value = fd.key;
+        clone.querySelector(".type-select").value = fd.type;
+        if (fd.type === "text") {
+          clone.querySelector(".value-input-text").value = fd.value;
+          clone.querySelector(".value-input-text").classList.remove("hidden");
+          clone.querySelector(".value-input-file").classList.add("hidden");
+        } else {
+          clone.querySelector(".value-input-text").classList.add("hidden");
+          clone.querySelector(".value-input-file").classList.remove("hidden");
+        }
+        fdContainer.appendChild(clone);
+      });
+    } else {
+      addFormDataRow();
+    }
+  }
+}
+
+clearHistoryBtn.addEventListener("click", clearHistory);
+
+// Initialization
+loadHistory();
+
+// If empty history, init empty rows
+if (history.length === 0) {
+  addKeyValuePair("params-container");
+  addKeyValuePair("headers-container");
+  addFormDataRow();
+} else {
+  // If we have history, maybe load the first one?
+  // Or just load the last inputs from localStorage like before?
+  // Let's keep the "last_request" logic separate or merge it.
+  // The user probably expects the "last state" to be restored.
+  // Let's rely on "last_request" logic below for initial state.
+}
+
+// Persistence - Load Last Request (Keep this for page reload state)
 const lastReq = JSON.parse(localStorage.getItem("last_request") || "{}");
 if (lastReq.url) document.getElementById("request-url").value = lastReq.url;
 if (lastReq.method)
@@ -173,19 +371,31 @@ sendBtn.addEventListener("click", async () => {
     if (key) params.append(key, value);
   });
 
+  // Collect Params for History
+  const paramsHistory = [];
+  paramsContainer.querySelectorAll(".flex").forEach((row) => {
+    const key = row.querySelector(".key-input").value;
+    const value = row.querySelector(".value-input").value;
+    if (key) paramsHistory.push({ key, value });
+  });
+
   if (params.toString()) {
     url += (url.includes("?") ? "&" : "?") + params.toString();
   }
 
   // Collect Headers
   const headers = {};
+  const headersHistory = [];
   document
     .getElementById("headers-container")
     .querySelectorAll(".flex")
     .forEach((row) => {
       const key = row.querySelector(".key-input").value;
       const value = row.querySelector(".value-input").value;
-      if (key) headers[key] = value;
+      if (key) {
+        headers[key] = value;
+        headersHistory.push({ key, value });
+      }
     });
 
   // Collect Body
@@ -193,12 +403,15 @@ sendBtn.addEventListener("click", async () => {
     'input[name="body-type"]:checked',
   ).value;
   let body = null;
+  let bodyContent = ""; // For history (JSON string)
+  let bodyFormData = []; // For history
 
   if (method !== "GET" && method !== "HEAD") {
     if (bodyType === "json") {
       try {
         const jsonStr = document.getElementById("json-input").value;
         if (jsonStr) {
+          bodyContent = jsonStr;
           body = JSON.stringify(JSON.parse(jsonStr)); // Validate parsing
           headers["Content-Type"] = "application/json";
         }
@@ -218,10 +431,16 @@ sendBtn.addEventListener("click", async () => {
             if (type === "text") {
               const value = row.querySelector(".value-input-text").value;
               body.append(key, value);
+              bodyFormData.push({ key, type, value });
             } else {
               const fileInput = row.querySelector(".value-input-file");
               if (fileInput.files.length > 0) {
                 body.append(key, fileInput.files[0]);
+                bodyFormData.push({
+                  key,
+                  type,
+                  value: "[File: " + fileInput.files[0].name + "]",
+                });
               }
             }
           }
@@ -232,6 +451,17 @@ sendBtn.addEventListener("click", async () => {
 
   // Save State
   localStorage.setItem("last_request", JSON.stringify({ url, method }));
+
+  // Save to History
+  saveToHistory({
+    method,
+    url: document.getElementById("request-url").value, // Save original URL without extra params appended
+    params: paramsHistory,
+    headers: headersHistory,
+    bodyType,
+    bodyContent,
+    bodyFormData,
+  });
 
   // Prepare UI
   document.getElementById("response-empty").classList.add("hidden");
