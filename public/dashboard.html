@@ -607,16 +607,14 @@
       }
 
       /* Fix Date Picker Icon Color */
-      /* Light Mode: Icon should be dark */
-      input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-        filter: invert(0);
-        cursor: pointer;
+      /* Light Mode: Force Light System UI */
+      input[type="datetime-local"] {
+        color-scheme: light;
       }
 
-      /* Dark Mode: Icon should be white */
-      html.dark
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
+      /* Dark Mode: Force Dark System UI */
+      html.dark input[type="datetime-local"] {
+        color-scheme: dark;
       }
     </style>
 
