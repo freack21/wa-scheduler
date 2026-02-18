@@ -28,7 +28,7 @@ const upload = multer({ storage: storage });
 
 router.post("/schedule", upload.single("file"), async (req, res) => {
   try {
-    const { number, message, time, mediaType, mediaUrl } = req.body;
+    const { number, message, time, mediaType, mediaUrl, filename } = req.body;
 
     let media = mediaUrl;
     let isFile = false;
@@ -58,6 +58,7 @@ router.post("/schedule", upload.single("file"), async (req, res) => {
       mediaType,
       media,
       isFile,
+      filename,
     );
     res.status(201).json(schedule);
   } catch (error) {

@@ -35,6 +35,7 @@ class SchedulerService {
     mediaType = "text",
     media = null,
     isFile = false,
+    customFilename = null,
   ) {
     // Force parse time as Asia/Jakarta
     const timeObj = moment.tz(time, "Asia/Jakarta");
@@ -48,6 +49,7 @@ class SchedulerService {
       mediaType,
       media,
       isFile,
+      customFilename,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
@@ -106,11 +108,19 @@ class SchedulerService {
             schedule.message,
           );
         } else if (schedule.mediaType === "document") {
+          let filename =
+            schedule.customFilename || path.basename(schedule.media);
+
+          // Fallback validation to ensure extension exists (though frontend should enforce it)
+          if (!path.extname(filename)) {
+            filename += ".pdf"; // Last resort default
+          }
+
           await waService.sendDocument(
             schedule.userId,
             schedule.number,
             schedule.media,
-            path.basename(schedule.media),
+            filename,
             schedule.message,
           );
         } else if (schedule.mediaType === "sticker") {

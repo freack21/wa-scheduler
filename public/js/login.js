@@ -8,13 +8,18 @@ const messageDiv = document.getElementById("message");
 
 let isRegister = false;
 
+const toggleText = document.getElementById("toggle-text");
+
 toggleAuth.addEventListener("click", () => {
   isRegister = !isRegister;
-  formTitle.innerText = isRegister ? "Register" : "Login";
-  submitBtn.innerText = isRegister ? "Register" : "Login";
-  toggleAuth.innerText = isRegister
-    ? "Already have an account? Login"
-    : "Don't have an account? Register";
+  formTitle.innerText = isRegister ? "Register" : "Welcome Back";
+  submitBtn.innerText = isRegister ? "Sign Up" : "Sign In";
+
+  toggleText.innerText = isRegister
+    ? "Already have an account?"
+    : "Don't have an account?";
+  toggleAuth.innerText = isRegister ? "Login" : "Register";
+
   messageDiv.innerText = "";
 });
 

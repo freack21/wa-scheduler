@@ -130,9 +130,12 @@ const messageTypeSelect = document.getElementById("message-type");
 const mediaInputs = document.getElementById("media-inputs");
 const urlInputGroup = document.getElementById("url-input-group");
 const fileInputGroup = document.getElementById("file-input-group");
+const filenameInputGroup = document.getElementById("filename-input-group");
+const filenameInput = document.getElementById("media-filename");
 const messageLabel = document.getElementById("message-label");
 const mediaSourceRadios = document.getElementsByName("media-source");
 const messageContent = document.getElementById("message-content");
+const fileInput = document.getElementById("media-file");
 
 // Dynamic UI Handler
 messageTypeSelect.addEventListener("change", () => {
@@ -146,6 +149,13 @@ messageTypeSelect.addEventListener("change", () => {
     fileInputGroup.classList.add("hidden");
   }
 
+  // Show/Hide Filename Input based on type
+  if (type === "document") {
+    filenameInputGroup.classList.remove("hidden");
+  } else {
+    filenameInputGroup.classList.add("hidden");
+  }
+
   if (type === "text") {
     mediaInputs.classList.add("hidden");
     messageLabel.innerText = "Message";
@@ -154,6 +164,13 @@ messageTypeSelect.addEventListener("change", () => {
     mediaInputs.classList.remove("hidden");
     messageLabel.innerText = "Caption (Optional)";
     messageContent.placeholder = "Add a caption...";
+  }
+});
+
+// Auto-fill filename on file select
+fileInput.addEventListener("change", (e) => {
+  if (e.target.files.length > 0) {
+    filenameInput.value = e.target.files[0].name;
   }
 });
 
@@ -175,12 +192,14 @@ scheduleForm.addEventListener("submit", async (e) => {
   const message = document.getElementById("message-content").value;
   const time = document.getElementById("schedule-time").value;
   const type = messageTypeSelect.value;
+  const filename = filenameInput.value;
 
   const formData = new FormData();
   formData.append("number", number);
   formData.append("time", time);
   formData.append("mediaType", type);
   if (message) formData.append("message", message);
+  if (filename) formData.append("filename", filename);
 
   if (type !== "text") {
     const source = document.querySelector(
@@ -191,13 +210,24 @@ scheduleForm.addEventListener("submit", async (e) => {
       if (!url) return alert("Please enter a Media URL");
       formData.append("mediaUrl", url);
     } else {
-      const fileInput = document.getElementById("media-file");
       if (fileInput.files.length === 0)
         return alert("Please select a file to upload");
       formData.append("file", fileInput.files[0]);
     }
   } else {
     if (!message) return alert("Message is required for text type");
+  }
+
+  // Validation for Document type
+  if (type === "document") {
+    if (!filename) {
+      return alert("Filename is required for Document type");
+    }
+    if (!/\.[a-zA-Z0-9]+$/.test(filename)) {
+      return alert(
+        "Filename must include a valid extension (e.g. .pdf, .docx)",
+      );
+    }
   }
 
   try {
