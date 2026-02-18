@@ -85,5 +85,5 @@ io.on("connection", async (socket) => {
 
 const PORT = config.PORT;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
