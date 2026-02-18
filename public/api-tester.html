@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WA Scheduler - API Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              mono: ["Fira Code", "monospace"],
+            },
+            colors: {
+              gray: {
+                750: "#2d3748",
+                850: "#1a202c",
+                950: "#0d1117",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #4a5568;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #718096;
+      }
+
+      .code-editor {
+        font-family: "Fira Code", monospace;
+        background-color: transparent;
+        color: inherit;
+        outline: none;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 h-full font-sans transition-colors duration-200 flex flex-col"
+  >
+    <!-- Navbar -->
+    <nav
+      class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-50 px-4 h-14 flex items-center justify-between"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20"
+        >
+          <svg
+            class="w-5 h-5 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            ></path>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight">API Tester</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button
+          id="theme-toggle"
+          class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          <svg
+            id="sun-icon"
+            class="hidden w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            ></path>
+          </svg>
+          <svg
+            id="moon-icon"
+            class="hidden w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <!-- Left Panel: Request -->
+      <div
+        class="w-full md:w-1/2 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-full overflow-hidden"
+      >
+        <!-- URL Bar -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+          <div class="flex gap-2">
+            <select
+              id="request-method"
+              class="px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-mono text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="GET" class="text-green-600">GET</option>
+              <option value="POST" class="text-yellow-600">POST</option>
+              <option value="PUT" class="text-blue-600">PUT</option>
+              <option value="PATCH" class="text-purple-600">PATCH</option>
+              <option value="DELETE" class="text-red-600">DELETE</option>
+            </select>
+            <input
+              type="text"
+              id="request-url"
+              class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
+              placeholder="Enter request URL"
+            />
+            <button
+              id="send-btn"
+              class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2"
+            >
+              <span>Send</span>
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Request Tabs -->
+        <div class="flex-1 flex flex-col min-h-0">
+          <div
+            class="flex border-b border-gray-200 dark:border-gray-800 px-4 gap-4"
+          >
+            <button
+              class="tab-btn active py-3 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400"
+              data-tab="params"
+            >
+              Params
+            </button>
+            <button
+              class="tab-btn py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              data-tab="headers"
+            >
+              Headers
+            </button>
+            <button
+              class="tab-btn py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              data-tab="body"
+            >
+              Body
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            <!-- Params Tab -->
+            <div id="tab-params" class="tab-content space-y-2">
+              <div class="text-xs text-gray-500 mb-2 font-mono uppercase">
+                Query Parameters
+              </div>
+              <div id="params-container" class="space-y-2">
+                <!-- Dynamic Param Rows -->
+              </div>
+              <button
+                onclick="addKeyValuePair('params-container')"
+                class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  ></path>
+                </svg>
+                Add Parameter
+              </button>
+            </div>
+
+            <!-- Headers Tab -->
+            <div id="tab-headers" class="tab-content hidden space-y-2">
+              <div class="text-xs text-gray-500 mb-2 font-mono uppercase">
+                Request Headers
+              </div>
+              <div id="headers-container" class="space-y-2">
+                <!-- Dynamic Header Rows -->
+              </div>
+              <button
+                onclick="addKeyValuePair('headers-container')"
+                class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  ></path>
+                </svg>
+                Add Header
+              </button>
+            </div>
+
+            <!-- Body Tab -->
+            <div id="tab-body" class="tab-content hidden h-full flex flex-col">
+              <div class="flex gap-4 mb-4 text-xs font-mono">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="body-type"
+                    value="none"
+                    class="text-indigo-600"
+                    checked
+                  />
+                  <span>None</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="body-type"
+                    value="json"
+                    class="text-indigo-600"
+                  />
+                  <span>JSON</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="body-type"
+                    value="form-data"
+                    class="text-indigo-600"
+                  />
+                  <span>Form Data</span>
+                </label>
+              </div>
+
+              <!-- JSON Editor -->
+              <div
+                id="body-json"
+                class="hidden flex-1 relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+              >
+                <textarea
+                  id="json-input"
+                  class="w-full h-full p-4 bg-gray-50 dark:bg-gray-800 text-sm font-mono resize-none focus:outline-none"
+                  placeholder='{ "key": "value" }'
+                ></textarea>
+              </div>
+
+              <!-- Form Data Editor -->
+              <div id="body-form-data" class="hidden space-y-2">
+                <div id="form-data-container" class="space-y-2">
+                  <!-- Dynamic Form Data Rows -->
+                </div>
+                <button
+                  onclick="addFormDataRow()"
+                  class="mt-2 text-xs flex items-center gap-1 text-indigo-500 hover:text-indigo-600 font-medium"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"
+                    ></path>
+                  </svg>
+                  Add Field
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Response -->
+      <div
+        class="w-full md:w-1/2 flex flex-col bg-gray-50 dark:bg-gray-950 h-full border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800"
+      >
+        <div
+          class="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center h-[73px]"
+        >
+          <h2 class="font-semibold text-gray-700 dark:text-gray-200">
+            Response
+          </h2>
+          <div
+            id="response-meta"
+            class="hidden flex items-center gap-4 text-xs font-mono"
+          >
+            <span
+              class="px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+              id="res-status"
+              >200 OK</span
+            >
+            <span class="text-gray-500" id="res-time">120ms</span>
+            <span class="text-gray-500" id="res-size">1.2KB</span>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+          <!-- Empty State -->
+          <div
+            id="response-empty"
+            class="absolute inset-0 flex flex-col items-center justify-center text-gray-400"
+          >
+            <svg
+              class="w-16 h-16 mb-4 opacity-50"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <p>Send a request to see the response</p>
+          </div>
+
+          <!-- Loading State -->
+          <div
+            id="response-loading"
+            class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10"
+          >
+            <div
+              class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"
+            ></div>
+          </div>
+
+          <!-- Content -->
+          <div id="response-content" class="hidden flex-1 flex flex-col h-full">
+            <div
+              class="flex border-b border-gray-200 dark:border-gray-800 px-4 gap-4 bg-white dark:bg-gray-900"
+            >
+              <button
+                class="res-tab-btn active py-2 text-xs font-medium border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                data-tab="res-body"
+              >
+                Body
+              </button>
+              <button
+                class="res-tab-btn py-2 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                data-tab="res-headers"
+              >
+                Headers
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-4 custom-scrollbar">
+              <pre
+                id="res-body"
+                class="res-tab-content text-xs font-mono text-gray-800 dark:text-gray-300 whitespace-pre-wrap break-all"
+              ></pre>
+              <div
+                id="res-headers"
+                class="res-tab-content hidden space-y-1"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <template id="key-value-row-template">
+      <div class="flex gap-2 group">
+        <input
+          type="text"
+          class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono focus:outline-none focus:border-indigo-500 key-input"
+          placeholder="Key"
+        />
+        <input
+          type="text"
+          class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono focus:outline-none focus:border-indigo-500 value-input"
+          placeholder="Value"
+        />
+        <button
+          class="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          onclick="this.parentElement.remove()"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </template>
+
+    <template id="form-data-row-template">
+      <div class="flex gap-2 group items-start">
+        <input
+          type="text"
+          class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono focus:outline-none focus:border-indigo-500 key-input"
+          placeholder="Key"
+        />
+        <div class="flex-1 flex flex-col gap-1">
+          <select
+            class="text-[10px] bg-transparent text-gray-500 border-none p-0 focus:ring-0 type-select w-fit"
+            onchange="toggleValueInput(this)"
+          >
+            <option value="text">Text</option>
+            <option value="file">File</option>
+          </select>
+          <input
+            type="text"
+            class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono focus:outline-none focus:border-indigo-500 value-input-text"
+            placeholder="Value"
+          />
+          <input
+            type="file"
+            class="hidden w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 value-input-file"
+          />
+        </div>
+        <button
+          class="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+          onclick="this.parentElement.remove()"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </template>
+
+    <script>
+      // Load script dynamically for cache busting
+      const script = document.createElement("script");
+      script.src = "js/api-tester.js?v=" + new Date().getTime();
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>

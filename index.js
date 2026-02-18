@@ -39,6 +39,11 @@ app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public", "dashboard.html"));
 });
 
+app.get("/tools/api-tester", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.sendFile(path.join(process.cwd(), "public", "api-tester.html"));
+});
+
 // Routes
 app.use("/auth", authRoutes);
 app.use("/api", apiRoutes);
