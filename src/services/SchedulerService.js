@@ -1,4 +1,5 @@
 import path from "path";
+import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment-timezone";
 import JsonDB from "../models/JsonDB.js";
@@ -26,7 +27,15 @@ class SchedulerService {
     }
   }
 
-  async createSchedule(userId, number, message, time) {
+  async createSchedule(
+    userId,
+    number,
+    message,
+    time,
+    mediaType = "text",
+    media = null,
+    isFile = false,
+  ) {
     // Force parse time as Asia/Jakarta
     const timeObj = moment.tz(time, "Asia/Jakarta");
 
@@ -34,8 +43,11 @@ class SchedulerService {
       id: uuidv4(),
       userId,
       number,
-      message,
+      message, // Serves as caption for media
       time: timeObj.toISOString(),
+      mediaType,
+      media,
+      isFile,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
@@ -49,6 +61,15 @@ class SchedulerService {
   }
 
   async deleteSchedule(userId, id) {
+    const schedule = await this.db.findOne("schedules", { id, userId });
+    if (schedule && schedule.isFile && schedule.media) {
+      // Try to delete file if it exists (though usually deleted after execution)
+      try {
+        if (fs.existsSync(schedule.media)) fs.unlinkSync(schedule.media);
+      } catch (e) {
+        console.error("Error deleting file:", e);
+      }
+    }
     return await this.db.remove("schedules", { id, userId });
   }
 
@@ -69,11 +90,43 @@ class SchedulerService {
         console.log(
           `Executing schedule ${schedule.id} for user ${schedule.userId} at ${now.format()}`,
         );
-        await waService.sendMessage(
-          schedule.userId,
-          schedule.number,
-          schedule.message,
-        );
+
+        if (schedule.mediaType === "image") {
+          await waService.sendImage(
+            schedule.userId,
+            schedule.number,
+            schedule.media,
+            schedule.message,
+          );
+        } else if (schedule.mediaType === "video") {
+          await waService.sendVideo(
+            schedule.userId,
+            schedule.number,
+            schedule.media,
+            schedule.message,
+          );
+        } else if (schedule.mediaType === "document") {
+          await waService.sendDocument(
+            schedule.userId,
+            schedule.number,
+            schedule.media,
+            path.basename(schedule.media),
+            schedule.message,
+          );
+        } else if (schedule.mediaType === "sticker") {
+          await waService.sendSticker(
+            schedule.userId,
+            schedule.number,
+            schedule.media,
+          );
+        } else {
+          // Default text
+          await waService.sendMessage(
+            schedule.userId,
+            schedule.number,
+            schedule.message,
+          );
+        }
 
         // Update status to sent
         await this.db.update(
@@ -92,6 +145,18 @@ class SchedulerService {
           { id: schedule.id },
           { status: "failed", error: error.message },
         );
+      } finally {
+        // Cleanup temp file if applicable
+        if (schedule.isFile && schedule.media) {
+          try {
+            if (fs.existsSync(schedule.media)) {
+              fs.unlinkSync(schedule.media);
+              console.log(`Deleted temp file: ${schedule.media}`);
+            }
+          } catch (e) {
+            console.error(`Failed to delete temp file ${schedule.media}:`, e);
+          }
+        }
       }
     }
   }

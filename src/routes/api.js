@@ -1,16 +1,53 @@
 import express from "express";
 import schedulerService from "../services/SchedulerService.js";
 import { verifyToken } from "../middlewares/auth.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = express.Router();
 
 router.use(verifyToken);
 
-router.post("/schedule", async (req, res) => {
+// Configure Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.cwd(), "temp");
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
+
+router.post("/schedule", upload.single("file"), async (req, res) => {
   try {
-    const { number, message, time } = req.body;
-    if (!number || !message || !time) {
-      return res.status(400).json({ message: "Missing required fields" });
+    const { number, message, time, mediaType, mediaUrl } = req.body;
+
+    let media = mediaUrl;
+    let isFile = false;
+
+    if (req.file) {
+      media = req.file.path;
+      isFile = true;
+    }
+
+    if (!number || !time) {
+      // Message is required only for text type, media might have caption in message field
+      if (mediaType === "text" && !message) {
+        return res
+          .status(400)
+          .json({ message: "Message is required for text type" });
+      }
+      if (!mediaType && !message) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
     }
 
     const schedule = await schedulerService.createSchedule(
@@ -18,6 +55,9 @@ router.post("/schedule", async (req, res) => {
       number,
       message,
       time,
+      mediaType,
+      media,
+      isFile,
     );
     res.status(201).json(schedule);
   } catch (error) {

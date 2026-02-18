@@ -87,41 +87,41 @@ class WaService extends EventEmitter {
     return await session.sendText({ to: number, text });
   }
 
-  async sendImage(userId, number, imageUrl, caption) {
+  async sendImage(userId, number, media, caption) {
     const session = this.sessions.get(userId);
     if (!session) throw new Error("Session not found or not connected");
     return await session.sendImage({
       to: number,
-      media: imageUrl,
+      media: media,
       text: caption,
     });
   }
 
-  async sendVideo(userId, number, videoUrl, caption) {
+  async sendVideo(userId, number, media, caption) {
     const session = this.sessions.get(userId);
     if (!session) throw new Error("Session not found or not connected");
     return await session.sendVideo({
       to: number,
-      media: videoUrl,
+      media: media,
       text: caption,
     });
   }
 
-  async sendDocument(userId, number, docUrl, filename, caption) {
+  async sendDocument(userId, number, media, filename, caption) {
     const session = this.sessions.get(userId);
     if (!session) throw new Error("Session not found or not connected");
     return await session.sendDocument({
       to: number,
-      media: docUrl,
+      media: media,
       filename,
       text: caption,
     });
   }
 
-  async sendSticker(userId, number, stickerUrl) {
+  async sendSticker(userId, number, media) {
     const session = this.sessions.get(userId);
     if (!session) throw new Error("Session not found or not connected");
-    return await session.sendSticker({ to: number, media: stickerUrl });
+    return await session.sendSticker({ to: number, media: media });
   }
 
   async logout(userId) {

@@ -122,29 +122,104 @@ function updateStatus(status) {
   }
 }
 
-// Scheduler Logic Placeholder
+// Scheduler Logic
 const scheduleForm = document.getElementById("schedule-form");
+
+// UI Elements for dynamic form
+const messageTypeSelect = document.getElementById("message-type");
+const mediaInputs = document.getElementById("media-inputs");
+const urlInputGroup = document.getElementById("url-input-group");
+const fileInputGroup = document.getElementById("file-input-group");
+const messageLabel = document.getElementById("message-label");
+const mediaSourceRadios = document.getElementsByName("media-source");
+const messageContent = document.getElementById("message-content");
+
+// Dynamic UI Handler
+messageTypeSelect.addEventListener("change", () => {
+  const type = messageTypeSelect.value;
+
+  // Reset Media Source to URL by default when changing type
+  if (type !== "text") {
+    document.querySelector('input[name="media-source"][value="url"]').checked =
+      true;
+    urlInputGroup.classList.remove("hidden");
+    fileInputGroup.classList.add("hidden");
+  }
+
+  if (type === "text") {
+    mediaInputs.classList.add("hidden");
+    messageLabel.innerText = "Message";
+    messageContent.placeholder = "Type your message here...";
+  } else {
+    mediaInputs.classList.remove("hidden");
+    messageLabel.innerText = "Caption (Optional)";
+    messageContent.placeholder = "Add a caption...";
+  }
+});
+
+Array.from(mediaSourceRadios).forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    if (e.target.value === "url") {
+      urlInputGroup.classList.remove("hidden");
+      fileInputGroup.classList.add("hidden");
+    } else {
+      urlInputGroup.classList.add("hidden");
+      fileInputGroup.classList.remove("hidden");
+    }
+  });
+});
+
 scheduleForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const number = document.getElementById("target-number").value;
   const message = document.getElementById("message-content").value;
   const time = document.getElementById("schedule-time").value;
+  const type = messageTypeSelect.value;
 
-  // ... existing submit handler ...
+  const formData = new FormData();
+  formData.append("number", number);
+  formData.append("time", time);
+  formData.append("mediaType", type);
+  if (message) formData.append("message", message);
+
+  if (type !== "text") {
+    const source = document.querySelector(
+      'input[name="media-source"]:checked',
+    ).value;
+    if (source === "url") {
+      const url = document.getElementById("media-url").value;
+      if (!url) return alert("Please enter a Media URL");
+      formData.append("mediaUrl", url);
+    } else {
+      const fileInput = document.getElementById("media-file");
+      if (fileInput.files.length === 0)
+        return alert("Please select a file to upload");
+      formData.append("file", fileInput.files[0]);
+    }
+  } else {
+    if (!message) return alert("Message is required for text type");
+  }
+
   try {
+    // Note: Content-Type header is not set manually for FormData, fetch handles it with boundary
     const response = await fetch("/api/schedule", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ number, message, time }),
+      body: formData,
     });
     const data = await response.json();
     if (response.ok) {
       alert("Scheduled successfully!");
-      scheduleForm.reset(); // Clear the form
-      fetchSchedules(); // Refresh list
+      scheduleForm.reset(); // Clear form
+
+      // Reset UI state
+      mediaInputs.classList.add("hidden");
+      messageLabel.innerText = "Message";
+      messageTypeSelect.value = "text";
+
+      fetchSchedules();
     } else {
       alert("Error: " + data.message);
     }
@@ -181,19 +256,33 @@ async function fetchSchedules() {
       if (schedule.status === "failed")
         statusColor = "bg-red-900/50 text-red-300 border border-red-800";
 
+      const mediaTypeBadge =
+        schedule.mediaType && schedule.mediaType !== "text"
+          ? `<span class="text-xs uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 ml-2">${schedule.mediaType}</span>`
+          : "";
+
       li.innerHTML = `
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
                         <span class="font-mono text-white font-medium">${schedule.number}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full ${statusColor}">${schedule.status}</span>
+                        ${mediaTypeBadge}
                     </div>
-                    <p class="text-gray-400 text-sm line-clamp-2">${schedule.message}</p>
-                    <p class="text-xs text-gray-500 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        ${timeFormatted}
-                    </p>
+                    <p class="text-gray-400 text-sm line-clamp-2">${
+                      schedule.message || "No caption"
+                    }</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs text-gray-500 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            ${timeFormatted}
+                        </span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide border ${statusColor}">
+                            ${schedule.status}
+                        </span>
+                    </div>
                 </div>
-                <button onclick="deleteSchedule('${schedule.id}')" class="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2">
+                <button onclick="deleteSchedule('${
+                  schedule.id
+                }')" class="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             `;
