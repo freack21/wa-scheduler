@@ -1,18 +1,11 @@
 import { AutoWA } from "whatsauto.js";
 import { EventEmitter } from "events";
-import path from "path";
-import fs from "fs";
 
 class WaService extends EventEmitter {
   constructor() {
     super();
     this.sessions = new Map();
     this.qrCache = new Map(); // Store last QR for each user
-    this.sessionDir = path.join(process.cwd(), "wa_sessions");
-
-    if (!fs.existsSync(this.sessionDir)) {
-      fs.mkdirSync(this.sessionDir, { recursive: true });
-    }
 
     this.setMaxListeners(999999999999);
   }
@@ -51,7 +44,6 @@ class WaService extends EventEmitter {
     const session = new AutoWA(userId, {
       printQR: true,
       logging: false,
-      folder: this.sessionDir, // Custom session folder if supported, or handles internally
     });
 
     this.sessions.set(userId, session);
